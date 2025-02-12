@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: WooCommerce GoCardless Global Charge Date
- * Plugin URI:  https://example.com/
+ * Plugin URI:  https://github.com/plazareff/wc-gocardless-global-charge-date
  * Description: Adds a global setting for GoCardless payments to schedule a specific charge day of the month.
  * Version:     1.1
  * Author:      Patrice Lazareff
