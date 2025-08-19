@@ -253,7 +253,21 @@ function wc_gc_modify_gocardless_payment_params($params)
         $order_date = new DateTime($order_date);
     }
 
-    // AI! add a filter so the date can be modified from a template
+    // Allow themes/plugins to modify the effective order date used for scheduling.
+    $order_date = apply_filters(
+        'wc_gc_gocardless_order_date',
+        $order_date,
+        $order,
+        $params
+    );
+    if (!($order_date instanceof DateTime)) {
+        // Normalize any value returned by filters to a DateTime object.
+        if (is_numeric($order_date)) {
+            $order_date = new DateTime('@' . $order_date);
+        } else {
+            $order_date = new DateTime((string) $order_date);
+        }
+    }
 
     // Get the day of the month when the order was placed.
     $order_day = (int) $order_date->format('j');
