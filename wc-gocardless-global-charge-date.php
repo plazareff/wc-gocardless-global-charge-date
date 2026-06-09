@@ -204,6 +204,43 @@ function wc_gc_charge_date_plugin_action_links($links)
 }
 
 /**
+ * Check whether the order is linked to a subscription product with a release calendar.
+ *
+ * @param WC_Order $order The order to inspect.
+ * @return bool
+ */
+function wc_gc_order_has_release_calendar_subscription($order)
+{
+    if (
+        !is_object($order) ||
+        !function_exists('wcs_get_subscriptions_for_order') ||
+        !function_exists('acep_subscription_has_release_calendar_product')
+    ) {
+        return false;
+    }
+
+    $subscriptions = wcs_get_subscriptions_for_order($order, [
+        'order_type' => ['parent', 'renewal', 'resubscribe', 'switch'],
+    ]);
+
+    if (empty($subscriptions)) {
+        $subscriptions = wcs_get_subscriptions_for_order($order);
+    }
+
+    if (empty($subscriptions) || !is_array($subscriptions)) {
+        return false;
+    }
+
+    foreach ($subscriptions as $subscription) {
+        if (acep_subscription_has_release_calendar_product($subscription)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Modify the GoCardless payment parameters.
  *
  * New rule:
@@ -242,6 +279,10 @@ function wc_gc_modify_gocardless_payment_params($params)
     $order_id = absint($params['metadata']['order_id']);
     $order = wc_get_order($order_id);
     if (!$order) {
+        return $params;
+    }
+
+    if (!wc_gc_order_has_release_calendar_subscription($order)) {
         return $params;
     }
 
